@@ -8,7 +8,7 @@ env:
   PAGE_DESCRIPTION: Pedido Pago API Docs
   PAGE_FAVICON: https://pedidopago-static.s3-sa-east-1.amazonaws.com/pixel_logo_pedidopago_16x16.png
   SPEC_URL: https://swagger.sandbox.v2.pedidopago.com.br/swagger.json
-  REDOC_OPTIONS: '{"enableConsole": true}'
+  REDOC_OPTIONS: '{enableConsole: true, providedByName: "PP1", providedByUri: "https://api.sandbox.v2.pedidopago.com.br"}'
   DOCKER_REPO: react/redoc
   PUSH_MESSAGE: "redoc deployed to PPV2 Sandbox!"
 jobs:
