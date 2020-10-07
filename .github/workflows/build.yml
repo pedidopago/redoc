@@ -1,0 +1,63 @@
+name: DevDeploy
+
+on:
+  push:
+    branches: [master, develop]
+env:
+  PAGE_TITLE: Pedido Pago API
+  PAGE_DESCRIPTION: Pedido Pago API Docs
+  PAGE_FAVICON: https://pedidopago-static.s3-sa-east-1.amazonaws.com/pixel_logo_pedidopago_16x16.png
+  SPEC_URL: https://swagger.sandbox.v2.pedidopago.com.br/swagger.json
+  REDOC_OPTIONS: '{"enableConsole": true}'
+  DOCKER_REPO: react/redoc
+  PUSH_MESSAGE: "redoc deployed to PPV2 Sandbox!"
+jobs:
+  devdeploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Use Node.js 12.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: "12.x"
+      - name: Cache Node.js modules
+        uses: actions/cache@v2
+        with:
+          # npm cache files are stored in `~/.npm` on Linux/macOS
+          path: ~/.npm
+          key: ${{ runner.OS }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.OS }}-node-
+            ${{ runner.OS }}-
+      - name: Install dependencies
+        run: npm install
+      - name: Docker Build and Push
+        uses: docker/build-push-action@v1
+        env:
+          PAGE_TITLE: ${{ env.PAGE_TITLE }}
+          PAGE_DESCRIPTION: ${{ env.PAGE_DESCRIPTION }}
+          PAGE_FAVICON: ${{ env.PAGE_FAVICON }}
+          SPEC_URL: ${{ env.SPEC_URL }}
+          REDOC_OPTIONS: ${{ env.REDOC_OPTIONS }}
+        with:
+          username: ppgithub
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          registry: registry.docker.pedidopago.com.br
+          repository: ${{ env.DOCKER_REPO }}
+          tags: latest,dev
+          context: .
+          file: ./config/docker/Dockerfile
+      - name: Update docker images and reload
+        uses: JimCronqvist/action-ssh@master
+        with:
+          hosts: ${{ secrets.SSH_HOST }}
+          privateKey: ${{ secrets.SSH_PRIVATE_KEY }}
+          command: |
+            cd /sandbox && docker-compose pull
+            cd /sandbox && docker-compose up -d
+      - name: Send Push Notification
+        uses: techulus/push-github-action@1.0.0
+        env:
+          API_KEY: ${{ secrets.TECHULUS_API_KEY }}
+          MESSAGE: ${{ env.PUSH_MESSAGE }}
