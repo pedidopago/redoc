@@ -46,7 +46,7 @@ jobs:
           registry: registry.docker.pedidopago.com.br
           repository: ${{ env.DOCKER_REPO }}
           tags: latest,dev
-          file: ./config/docker/Dockerfile
+          dockerfile: ./config/docker/Dockerfile
       - name: Update docker images and reload
         uses: JimCronqvist/action-ssh@master
         with:
